@@ -88,8 +88,10 @@ func parseBinaryOperation(expr *ast.BinaryExpression) *BinaryOperation {
 }
 
 func applyOperation(op Operation, decoder *Rc4StringDecoder) (any, bool) {
+	//godump.Dump(op)
 	switch op.(type) {
 	case *CallOperation:
+		fmt.Println("CallOperation")
 		cOp := op.(*CallOperation)
 		if len(cOp.args) != 2 {
 			panic("invalid call operation length")
@@ -108,8 +110,18 @@ func applyOperation(op Operation, decoder *Rc4StringDecoder) (any, bool) {
 			val = int(cOp.args[0].(float64))
 		}
 		fmt.Println(cOp.args[1].(string))
-		return decoder.GetForRotate(val, cOp.args[1].(string))
+		res, errd := decoder.GetForRotate(val, cOp.args[1].(string))
+		if errd {
+			return nil, true
+		}
+		fmt.Println(res)
+		resInt, errr := strconv.ParseInt(res, 10, 32)
+		if errr != nil {
+			return nil, true
+		}
+		return resInt, false
 	case *UnaryOperation:
+		fmt.Println("UnaryOperation")
 		arg, err := applyOperation(op.(*UnaryOperation).argument, decoder)
 		if err {
 			return nil, true
@@ -125,6 +137,7 @@ func applyOperation(op Operation, decoder *Rc4StringDecoder) (any, bool) {
 			return -val, false
 		}
 	case *BinaryOperation:
+		//fmt.Println("BinaryOperation")
 		//godump.Dump(op.(*BinaryOperation).left, op.(*BinaryOperation).right)
 
 		leftString, errd := applyOperation(op.(*BinaryOperation).left, decoder)
@@ -135,6 +148,7 @@ func applyOperation(op Operation, decoder *Rc4StringDecoder) (any, bool) {
 		if errd {
 			return nil, true
 		}
+		//fmt.Println(leftString.(string), rightString.(string))
 
 		left, err := strconv.ParseInt(leftString.(string), 10, 32)
 		if err != nil {
@@ -144,7 +158,7 @@ func applyOperation(op Operation, decoder *Rc4StringDecoder) (any, bool) {
 		if err != nil {
 			return nil, true
 		}
-		fmt.Println(op.(*BinaryOperation).operator)
+		//fmt.Println(op.(*BinaryOperation).operator)
 		switch op.(*BinaryOperation).operator {
 		case "+":
 			return left + right, false
@@ -158,6 +172,7 @@ func applyOperation(op Operation, decoder *Rc4StringDecoder) (any, bool) {
 			return left % right, false
 		}
 	case *NumberOperation:
+		//fmt.Println("NumberOperation")
 		return op.(*NumberOperation).value, false
 	}
 	godump.Dump(op)
@@ -175,25 +190,33 @@ func RotateStringArray(
 	i := 0
 	for {
 		value, errd := applyOperation(operation, decoder)
+		/*if i > 5 {
+			return
+		}*/
+		/*if array[0] == "WO3cTf4" {
+			d, _ := json.Marshal(array)
+			fmt.Println(string(d))
+			return
+		}*/
 		if errd {
 			first := array[0]
 			copy(array, array[1:])
 			array[len(array)-1] = first
 			decoder.stringArray = array
-			continue
-		}
-		if value == stopValue {
-			break
 		} else {
-			first := array[0]
-			copy(array, array[1:])
-			array[len(array)-1] = first
-			decoder.stringArray = array
+			if value == stopValue {
+				break
+			} else {
+				first := array[0]
+				copy(array, array[1:])
+				array[len(array)-1] = first
+				decoder.stringArray = array
+			}
 		}
 
+		i++
 		if i > 1e5 {
 			panic("invalid rotation")
 		}
-		i++
 	}
 }
