@@ -12,6 +12,7 @@ func Deobfuscate(a *ast.Program) {
 		visitors.ReplaceReassignments,
 		visitors.ReplaceStrings,
 		visitors.ConcatStrings,
+		visitors.UnrollProxyFunctions,
 	}
 
 	for _, fn := range visits {
