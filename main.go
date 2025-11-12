@@ -11,6 +11,7 @@ func Deobfuscate(a *ast.Program) {
 	visits := []func(p *ast.Program){
 		visitors.ReplaceReassignments,
 		visitors.ReplaceStrings,
+		visitors.ConcatStrings,
 	}
 
 	for _, fn := range visits {
