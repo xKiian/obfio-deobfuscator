@@ -20,5 +20,4 @@ func Deobfuscate(a *ast.Program) {
 	for _, fn := range v {
 		fn(a)
 	}
-	visitors.ExpandVarDeclarations(a)
 }
