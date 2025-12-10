@@ -8,14 +8,17 @@ import (
 
 func Deobfuscate(a *ast.Program) {
 	simplifier.Simplify(a, true)
-	visits := []func(p *ast.Program){
+	v := []func(p *ast.Program){
 		visitors.ReplaceReassignments,
 		visitors.ReplaceStrings,
 		visitors.ConcatStrings,
 		visitors.UnrollProxyFunctions,
+		visitors.SequenceUnroller,
+		visitors.SequenceUnroller,
 	}
 
-	for _, fn := range visits {
+	for _, fn := range v {
 		fn(a)
 	}
+	visitors.ExpandVarDeclarations(a)
 }

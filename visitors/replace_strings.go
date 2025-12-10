@@ -229,7 +229,9 @@ func ReplaceStrings(p *ast.Program) {
 	p.VisitWith(f)
 
 	decoder := utils.NewRc4StringDecoder(f.stringArray, f.offset)
-
+	if f.ShuffleExpr == nil {
+		return
+	}
 	matches := shuffleCheckerRe.FindAllStringSubmatch(generator.Generate(f.ShuffleExpr), -1)
 	var out []Entry
 	for _, m := range matches {
